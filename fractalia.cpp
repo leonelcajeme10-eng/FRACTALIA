@@ -1,4 +1,4 @@
-#include "raylib.h"
+ #include "raylib.h"
 #include "fractalia.h"
 #include <time.h>
 #include <stdlib.h>
@@ -12,6 +12,8 @@ int estrellas_inicializadas = 0;
 int randomizado = 0;
 Pantalla Pantalla_Actual;
 Pantalla nivel_actual;
+Font fuenteLilita;
+Texture2D Corazon;
 
 void estrellas(float dt, int pantalla_ancho, int pantalla_alto);
 void PantallaMenu(int pantalla_ancho, int pantalla_alto);
@@ -34,6 +36,12 @@ int main(void)
 
     Texture2D logo = LoadTexture("assets/images/LOGO FRACTALIA.png");
     Music musicaMenu = LoadMusicStream("assets/music/musica_menu.mp3");
+    Music musicaTuto = LoadMusicStream("assets/music/tutorial.mp3");
+    Music musicaLvl1 = LoadMusicStream("assets/music/level_1.mp3");
+    Music musicaLvl2 = LoadMusicStream("assets/music/level_2.mp3");
+    Music musicaLvl3 = LoadMusicStream("assets/music/level_3.mp3");
+    fuenteLilita = LoadFont("assets/fonts/LilitaOneRegular.ttf");
+    Corazon = LoadTexture("assets/images/heart.png");
     PlayMusicStream(musicaMenu);
 
     Pantalla_Actual = INICIO;
@@ -41,6 +49,10 @@ int main(void)
     while (!WindowShouldClose())
     {
         UpdateMusicStream(musicaMenu);
+        UpdateMusicStream(musicaTuto);
+        UpdateMusicStream(musicaLvl1);
+        UpdateMusicStream(musicaLvl2);
+        UpdateMusicStream(musicaLvl3);
 
         float dt = GetFrameTime();
 
@@ -50,39 +62,69 @@ int main(void)
         switch (Pantalla_Actual)
         {
         case INICIO:
-        {
+            StopMusicStream(musicaTuto);
+            StopMusicStream(musicaLvl1);
+            StopMusicStream(musicaLvl2);
+            StopMusicStream(musicaLvl3);
+
+            if (!IsMusicStreamPlaying(musicaMenu))
+                PlayMusicStream(musicaMenu);
+
             estrellas(dt, pantalla_ancho, pantalla_alto);
             PantallaMenu(pantalla_ancho, pantalla_alto);
             break;
-        }
 
         case TUTORIAL:
-        {
+            StopMusicStream(musicaMenu);
+            StopMusicStream(musicaLvl1);
+            StopMusicStream(musicaLvl2);
+            StopMusicStream(musicaLvl3);
+
+            if (!IsMusicStreamPlaying(musicaTuto))
+                PlayMusicStream(musicaTuto);
+
             estrellas(dt, pantalla_ancho, pantalla_alto);
             tutorial();
             break;
-        }
 
         case NIVEL1:
-        {
+            StopMusicStream(musicaMenu);
+            StopMusicStream(musicaTuto);
+            StopMusicStream(musicaLvl2);
+            StopMusicStream(musicaLvl3);
+
+            if (!IsMusicStreamPlaying(musicaLvl1))
+                PlayMusicStream(musicaLvl1);
+
             estrellas(dt, pantalla_ancho, pantalla_alto);
             nivel1();
             break;
-        }
 
         case NIVEL2:
-        {
+            StopMusicStream(musicaMenu);
+            StopMusicStream(musicaTuto);
+            StopMusicStream(musicaLvl1);
+            StopMusicStream(musicaLvl3);
+
+            if (!IsMusicStreamPlaying(musicaLvl2))
+                PlayMusicStream(musicaLvl2);
+
             estrellas(dt, pantalla_ancho, pantalla_alto);
             nivel2();
             break;
-        }
 
         case NIVEL3:
-        {
+            StopMusicStream(musicaMenu);
+            StopMusicStream(musicaTuto);
+            StopMusicStream(musicaLvl1);
+            StopMusicStream(musicaLvl2);
+
+            if (!IsMusicStreamPlaying(musicaLvl3))
+                PlayMusicStream(musicaLvl3);
+
             estrellas(dt, pantalla_ancho, pantalla_alto);
             nivel3();
             break;
-        }
         }
 
         EndDrawing();
@@ -90,6 +132,8 @@ int main(void)
 
     UnloadTexture(logo);
     UnloadMusicStream(musicaMenu);
+    UnloadFont(fuenteLilita);
+    UnloadTexture(Corazon);
     CloseAudioDevice();
     CloseWindow();
 
@@ -168,6 +212,9 @@ void tutorial()
     static float tiempo_turno_rival = 0;
     static bool debe_resetear = false;
     static int intentos_fallidos = 0; // CAMBIAR NOMBRE
+    static float tiempoMensaje = 0;   // Para los mensajes
+    static const char frases[14][20] = {"MUY BIEN!", "EXCELENTE!", "GENIAL!", "PERFECTO!", "WOW!", "INCREIBLE!", "FANTASTICO!", "SUPER!", "IMPACTANTE!", "ASOMBROSO!", "BRILLANTE!", "SORPRENDENTE!", "LO LOGRASTE!", "MAGNIFICO!"};
+    static const char *fraseActual;
 
     if (debe_resetear)
     {
@@ -221,30 +268,30 @@ void tutorial()
         switch (clicks)
         {
         case 0:
-            DrawText("BIENVENIDO AL", 890, 420, 25, BLACK);
-            DrawText("REINO DE FRACTALIA!", 840, 450, 25, BLACK);
-            DrawText("NECESITO TU AYUDA PARA", 820, 490, 22, BLACK);
-            DrawText("RESOLVER LOS MEMORAMAS", 815, 515, 22, BLACK);
-            DrawText("Y ASI SALVAR EL REINO", 830, 540, 22, BLACK);
+            DrawText("BIENVENIDO AL", 980 - MeasureText("BIENVENIDO AL", 25) / 2, 420, 25, BLACK);
+            DrawText("REINO DE FRACTALIA!", 980 - MeasureText("REINO DE FRACTALIA!", 25) / 2, 450, 25, BLACK);
+            DrawText("NECESITO TU AYUDA PARA", 980 - MeasureText("NECESITO TU AYUDA PARA", 22) / 2, 490, 22, BLACK);
+            DrawText("RESOLVER LOS MEMORAMAS", 980 - MeasureText("RESOLVER LOS MEMORAMAS", 22) / 2, 515, 22, BLACK);
+            DrawText("Y ASI SALVAR EL REINO", 980 - MeasureText("Y ASI SALVAR EL REINO", 22) / 2, 540, 22, BLACK);
             break;
 
         case 1:
-            DrawText("ES UN JUEGO POR TURNOS", 830, 440, 23, BLACK);
-            DrawText("TU INTENTAS HACER UN PAR", 810, 475, 22, BLACK);
-            DrawText("SI ACIERTAS, QUITAS 1 VIDA", 810, 510, 22, BLACK);
+            DrawText("ES UN JUEGO POR TURNOS", 980 - MeasureText("ES UN JUEGO POR TURNOS", 23) / 2, 440, 23, BLACK);
+            DrawText("TU INTENTAS HACER UN PAR", 980 - MeasureText("TU INTENTAS HACER UN PAR", 22) / 2, 475, 22, BLACK);
+            DrawText("SI ACIERTAS, QUITAS 1 VIDA", 980 - MeasureText("SI ACIERTAS, QUITAS 1 VIDA", 22) / 2, 510, 22, BLACK);
             break;
 
         case 2:
-            DrawText("SI FALLAS 2 VECES, EL RIVAL", 820, 450, 23, BLACK);
-            DrawText("MEZCLA LAS CARTAS", 855, 485, 23, BLACK);
+            DrawText("SI FALLAS 2 VECES, EL RIVAL", 980 - MeasureText("SI FALLAS 2 VECES, EL RIVAL", 23) / 2, 450, 23, BLACK);
+            DrawText("MEZCLA LAS CARTAS", 980 - MeasureText("MEZCLA LAS CARTAS", 23) / 2, 485, 23, BLACK);
             break;
 
         case 3:
-            DrawText("TU PUEDES!", 910, 460, 30, BLACK);
+            DrawText("TU PUEDES!", 980 - MeasureText("TU PUEDES!", 30) / 2, 460, 30, BLACK);
             break;
         }
 
-        DrawText("CLICK PARA CONTINUAR", 835, 580, 18, (Color){100, 100, 100, 180});
+        DrawText("CLICK PARA CONTINUAR", 980 - MeasureText("CLICK PARA CONTINUAR", 18) / 2, 580, 18, (Color){100, 100, 100, 180});
         return;
     }
 
@@ -254,23 +301,36 @@ void tutorial()
         tiempo_restante -= GetFrameTime();
     }
 
-    // MOSTRAR INFO
-    DrawText(TextFormat("Tiempo: %.0f", tiempo_restante), 1450, 50, 40, WHITE);
+    float margenX = 1450.0f;
+    float margenY = 50.0f;
+    float corazonSize = 40.0f;
 
+    // MOSTRAR INFO
+    DrawTextEx(fuenteLilita, TextFormat("Tiempo: %.0f", tiempo_restante), (Vector2){margenX, margenY}, 50, 2, WHITE);
+
+    // TURNO
     if (turno_jugador)
     {
-        DrawText("TU TURNO", 1500, 110, 30, GREEN);
-        DrawText(TextFormat("Fallos: %d/2", intentos_fallidos), 1480, 260, 25, YELLOW);
+        DrawTextEx(fuenteLilita, "TU TURNO", (Vector2){margenX, margenY + 70}, 40, 2, GREEN);
+        DrawTextEx(fuenteLilita, TextFormat("Fallos: %d/2", intentos_fallidos), (Vector2){margenX, margenY + 120}, 35, 2, YELLOW);
     }
     else
     {
-        DrawText("TURNO RIVAL", 1480, 110, 30, RED);
+        DrawTextEx(fuenteLilita, "TURNO RIVAL", (Vector2){margenX, margenY + 70}, 40, 2, RED);
     }
 
-    DrawText("VIDA RIVAL:", 1470, 160, 25, WHITE);
+    // VIDA RIVAL
+    DrawTextEx(fuenteLilita, "VIDA RIVAL:", (Vector2){margenX, margenY + 180}, 35, 2, WHITE);
     for (int i = 0; i < vida_rival; i++)
     {
-        DrawText("♥", 1450 + (i * 40), 195, 40, RED);
+        DrawTextureEx(Corazon, (Vector2){margenX + i * (corazonSize + 5), margenY + 215}, 0.0f, corazonSize / (float)Corazon.width, WHITE);
+    }
+
+    // MENSAJES SI ACERTASTE
+    if (tiempoMensaje > 0)
+    {
+        DrawTextEx(fuenteLilita, TextFormat(fraseActual), (Vector2){margenX, margenY + 270}, 35, 2, GREEN);
+        tiempoMensaje -= GetFrameTime();
     }
 
     // TURNO DEL RIVAL
@@ -282,7 +342,7 @@ void tutorial()
         }
 
         tiempo_turno_rival -= GetFrameTime();
-        DrawText("EL RIVAL ESTA MEZCLANDO...", 1420, 300, 22, YELLOW);
+        DrawTextEx(fuenteLilita, "EL RIVAL ESTA MEZCLANDO...", (Vector2){margenX, margenY + 300}, 30, 2, YELLOW);
 
         if (tiempo_turno_rival <= 0)
         {
@@ -293,7 +353,7 @@ void tutorial()
                     cartas_ocultas++;
             }
 
-            int cartas_a_mezclar = (cartas_ocultas + 1) / 2;
+            int cartas_a_mezclar = (cartas_ocultas + 1) / 4;
             int mezcladas = 0;
 
             for (int i = 5; i > 0 && mezcladas < cartas_a_mezclar; i--)
@@ -385,7 +445,9 @@ void tutorial()
                                 pares_encontrados++;
                                 vida_rival--;
                                 turno_jugador = true;
+                                tiempoMensaje = 1.0f; // Iniciar temporizador si estaba apagado
                                 // NO INCREMENTAR intentos_fallidos
+                                fraseActual = frases[rand() % 14];
                             }
                             else
                             {
@@ -425,6 +487,9 @@ void nivel1()
     static float tiempo_turno_rival = 0;
     static bool debe_resetear = false;
     static int intentos_fallidos = 0; // CAMBIAR NOMBRE
+    static float tiempoMensaje = 0;   // Para los mensajes
+    static const char frases[14][20] = {"MUY BIEN!", "EXCELENTE!", "GENIAL!", "PERFECTO!", "WOW!", "INCREIBLE!", "FANTASTICO!", "SUPER!", "IMPACTANTE!", "ASOMBROSO!", "BRILLANTE!", "SORPRENDENTE!", "LO LOGRASTE!", "MAGNIFICO!"};
+    static const char *fraseActual;
 
     if (debe_resetear)
     {
@@ -459,23 +524,36 @@ void nivel1()
         tiempo_restante -= GetFrameTime();
     }
 
-    // MOSTRAR INFO
-    DrawText(TextFormat("Tiempo: %.0f", tiempo_restante), 1450, 50, 40, WHITE);
+    float margenX = 1450.0f;
+    float margenY = 50.0f;
+    float corazonSize = 40.0f;
 
+    // MOSTRAR INFO
+    DrawTextEx(fuenteLilita, TextFormat("Tiempo: %.0f", tiempo_restante), (Vector2){margenX, margenY}, 50, 2, WHITE);
+
+    // TURNO
     if (turno_jugador)
     {
-        DrawText("TU TURNO", 1500, 110, 30, GREEN);
-        DrawText(TextFormat("Fallos: %d/2", intentos_fallidos), 1480, 260, 25, YELLOW);
+        DrawTextEx(fuenteLilita, "TU TURNO", (Vector2){margenX, margenY + 70}, 40, 2, GREEN);
+        DrawTextEx(fuenteLilita, TextFormat("Fallos: %d/2", intentos_fallidos), (Vector2){margenX, margenY + 120}, 35, 2, YELLOW);
     }
     else
     {
-        DrawText("TURNO RIVAL", 1480, 110, 30, RED);
+        DrawTextEx(fuenteLilita, "TURNO RIVAL", (Vector2){margenX, margenY + 70}, 40, 2, RED);
     }
 
-    DrawText("VIDA RIVAL:", 1470, 160, 25, WHITE);
+    // VIDA RIVAL
+    DrawTextEx(fuenteLilita, "VIDA RIVAL:", (Vector2){margenX, margenY + 180}, 35, 2, WHITE);
     for (int i = 0; i < vida_rival; i++)
     {
-        DrawText("♥", 1450 + (i * 40), 195, 40, RED);
+        DrawTextureEx(Corazon, (Vector2){margenX + i * (corazonSize + 5), margenY + 215}, 0.0f, corazonSize / (float)Corazon.width, WHITE);
+    }
+
+    // MENSAJES SI ACERTASTE
+    if (tiempoMensaje > 0)
+    {
+        DrawTextEx(fuenteLilita, TextFormat(fraseActual), (Vector2){margenX, margenY + 270}, 35, 2, GREEN);
+        tiempoMensaje -= GetFrameTime();
     }
 
     // TURNO DEL RIVAL
@@ -487,7 +565,7 @@ void nivel1()
         }
 
         tiempo_turno_rival -= GetFrameTime();
-        DrawText("EL RIVAL ESTA MEZCLANDO...", 1420, 300, 22, YELLOW);
+        DrawTextEx(fuenteLilita, "EL RIVAL ESTA MEZCLANDO...", (Vector2){margenX, margenY + 300}, 30, 2, YELLOW);
 
         if (tiempo_turno_rival <= 0)
         {
@@ -498,7 +576,7 @@ void nivel1()
                     cartas_ocultas++;
             }
 
-            int cartas_a_mezclar = (cartas_ocultas + 1) / 2;
+            int cartas_a_mezclar = (cartas_ocultas + 1) / 4;
             int mezcladas = 0;
 
             for (int i = 11; i > 0 && mezcladas < cartas_a_mezclar; i--)
@@ -590,7 +668,9 @@ void nivel1()
                                 pares_encontrados++;
                                 vida_rival--;
                                 turno_jugador = true;
+                                tiempoMensaje = 1.0f; // Iniciar temporizador si estaba apagado
                                 // NO INCREMENTAR intentos_fallidos
+                                fraseActual = frases[rand() % 14];
                             }
                             else
                             {
@@ -630,6 +710,9 @@ void nivel2()
     static float tiempo_turno_rival = 0;
     static bool debe_resetear = false;
     static int intentos_fallidos = 0; // CAMBIAR NOMBRE
+    static float tiempoMensaje = 0;   // Para los mensajes
+    static const char frases[14][20] = {"MUY BIEN!", "EXCELENTE!", "GENIAL!", "PERFECTO!", "WOW!", "INCREIBLE!", "FANTASTICO!", "SUPER!", "IMPACTANTE!", "ASOMBROSO!", "BRILLANTE!", "SORPRENDENTE!", "LO LOGRASTE!", "MAGNIFICO!"};
+    static const char *fraseActual;
 
     if (debe_resetear)
     {
@@ -639,7 +722,7 @@ void nivel2()
         tiempo_espera = 0;
         pares_encontrados = 0;
         vida_rival = 8;
-        tiempo_restante = 150.0f;
+        tiempo_restante = 180.0f;
         turno_jugador = true;
         tiempo_turno_rival = 0;
         debe_resetear = false;
@@ -664,23 +747,36 @@ void nivel2()
         tiempo_restante -= GetFrameTime();
     }
 
-    // MOSTRAR INFO
-    DrawText(TextFormat("Tiempo: %.0f", tiempo_restante), 1450, 50, 40, WHITE);
+    float margenX = 1450.0f;
+    float margenY = 50.0f;
+    float corazonSize = 40.0f;
 
+    // MOSTRAR INFO
+    DrawTextEx(fuenteLilita, TextFormat("Tiempo: %.0f", tiempo_restante), (Vector2){margenX, margenY}, 50, 2, WHITE);
+
+    // TURNO
     if (turno_jugador)
     {
-        DrawText("TU TURNO", 1500, 110, 30, GREEN);
-        DrawText(TextFormat("Fallos: %d/2", intentos_fallidos), 1480, 260, 25, YELLOW);
+        DrawTextEx(fuenteLilita, "TU TURNO", (Vector2){margenX, margenY + 70}, 40, 2, GREEN);
+        DrawTextEx(fuenteLilita, TextFormat("Fallos: %d/3", intentos_fallidos), (Vector2){margenX, margenY + 120}, 35, 2, YELLOW);
     }
     else
     {
-        DrawText("TURNO RIVAL", 1480, 110, 30, RED);
+        DrawTextEx(fuenteLilita, "TURNO RIVAL", (Vector2){margenX, margenY + 70}, 40, 2, RED);
     }
 
-    DrawText("VIDA RIVAL:", 1470, 160, 25, WHITE);
+    // VIDA RIVAL
+    DrawTextEx(fuenteLilita, "VIDA RIVAL:", (Vector2){margenX, margenY + 180}, 35, 2, WHITE);
     for (int i = 0; i < vida_rival; i++)
     {
-        DrawText("♥", 1450 + (i * 40), 195, 40, RED);
+        DrawTextureEx(Corazon, (Vector2){margenX + i * (corazonSize + 5), margenY + 215}, 0.0f, corazonSize / (float)Corazon.width, WHITE);
+    }
+
+    // MENSAJES SI ACERTASTE
+    if (tiempoMensaje > 0)
+    {
+        DrawTextEx(fuenteLilita, TextFormat(fraseActual), (Vector2){margenX, margenY + 270}, 35, 2, GREEN);
+        tiempoMensaje -= GetFrameTime();
     }
 
     // TURNO DEL RIVAL
@@ -692,7 +788,7 @@ void nivel2()
         }
 
         tiempo_turno_rival -= GetFrameTime();
-        DrawText("EL RIVAL ESTA MEZCLANDO...", 1420, 300, 22, YELLOW);
+        DrawTextEx(fuenteLilita, "EL RIVAL ESTA MEZCLANDO...", (Vector2){margenX, margenY + 300}, 30, 2, YELLOW);
 
         if (tiempo_turno_rival <= 0)
         {
@@ -703,7 +799,7 @@ void nivel2()
                     cartas_ocultas++;
             }
 
-            int cartas_a_mezclar = (cartas_ocultas + 1) / 2;
+            int cartas_a_mezclar = (cartas_ocultas + 1) / 4;
             int mezcladas = 0;
 
             for (int i = 15; i > 0 && mezcladas < cartas_a_mezclar; i--)
@@ -744,8 +840,8 @@ void nivel2()
             primera_carta = -1;
             segunda_carta = -1;
 
-            // SI LLEGÓ A 2 FALLOS, CAMBIAR TURNO
-            if (intentos_fallidos >= 2)
+            // SI LLEGÓ A 3 FALLOS, CAMBIAR TURNO
+            if (intentos_fallidos >= 3)
             {
                 turno_jugador = false;
             }
@@ -795,7 +891,9 @@ void nivel2()
                                 pares_encontrados++;
                                 vida_rival--;
                                 turno_jugador = true;
+                                tiempoMensaje = 1.0f; // Iniciar temporizador si estaba apagado
                                 // NO INCREMENTAR intentos_fallidos
+                                fraseActual = frases[rand() % 14];
                             }
                             else
                             {
@@ -835,6 +933,9 @@ void nivel3()
     static float tiempo_turno_rival = 0;
     static bool debe_resetear = false;
     static int intentos_fallidos = 0; // CAMBIAR NOMBRE
+    static float tiempoMensaje = 0;   // Para los mensajes
+    static const char frases[14][20] = {"MUY BIEN!", "EXCELENTE!", "GENIAL!", "PERFECTO!", "WOW!", "INCREIBLE!", "FANTASTICO!", "SUPER!", "IMPACTANTE!", "ASOMBROSO!", "BRILLANTE!", "SORPRENDENTE!", "LO LOGRASTE!", "MAGNIFICO!"};
+    static const char *fraseActual;
 
     if (debe_resetear)
     {
@@ -844,7 +945,7 @@ void nivel3()
         tiempo_espera = 0;
         pares_encontrados = 0;
         vida_rival = 10;
-        tiempo_restante = 150.0f;
+        tiempo_restante = 210.0f;
         turno_jugador = true;
         tiempo_turno_rival = 0;
         debe_resetear = false;
@@ -869,23 +970,36 @@ void nivel3()
         tiempo_restante -= GetFrameTime();
     }
 
-    // MOSTRAR INFO
-    DrawText(TextFormat("Tiempo: %.0f", tiempo_restante), 1450, 50, 40, WHITE);
+    float margenX = 1450.0f;
+    float margenY = 50.0f;
+    float corazonSize = 40.0f;
 
+    // MOSTRAR INFO
+    DrawTextEx(fuenteLilita, TextFormat("Tiempo: %.0f", tiempo_restante), (Vector2){margenX, margenY}, 50, 2, WHITE);
+
+    // TURNO
     if (turno_jugador)
     {
-        DrawText("TU TURNO", 1500, 110, 30, GREEN);
-        DrawText(TextFormat("Fallos: %d/2", intentos_fallidos), 1480, 260, 25, YELLOW);
+        DrawTextEx(fuenteLilita, "TU TURNO", (Vector2){margenX, margenY + 70}, 40, 2, GREEN);
+        DrawTextEx(fuenteLilita, TextFormat("Fallos: %d/4", intentos_fallidos), (Vector2){margenX, margenY + 120}, 35, 2, YELLOW);
     }
     else
     {
-        DrawText("TURNO RIVAL", 1480, 110, 30, RED);
+        DrawTextEx(fuenteLilita, "TURNO RIVAL", (Vector2){margenX, margenY + 70}, 40, 2, RED);
     }
 
-    DrawText("VIDA RIVAL:", 1470, 160, 25, WHITE);
+    // VIDA RIVAL
+    DrawTextEx(fuenteLilita, "VIDA RIVAL:", (Vector2){margenX, margenY + 180}, 35, 2, WHITE);
     for (int i = 0; i < vida_rival; i++)
     {
-        DrawText("♥", 1450 + (i * 40), 195, 40, RED);
+        DrawTextureEx(Corazon, (Vector2){margenX + i * (corazonSize + 5), margenY + 215}, 0.0f, corazonSize / (float)Corazon.width, WHITE);
+    }
+
+    // MENSAJES SI ACERTASTE
+    if (tiempoMensaje > 0)
+    {
+        DrawTextEx(fuenteLilita, TextFormat(fraseActual), (Vector2){margenX, margenY + 270}, 35, 2, GREEN);
+        tiempoMensaje -= GetFrameTime();
     }
 
     // TURNO DEL RIVAL
@@ -897,7 +1011,7 @@ void nivel3()
         }
 
         tiempo_turno_rival -= GetFrameTime();
-        DrawText("EL RIVAL ESTA MEZCLANDO...", 1420, 300, 22, YELLOW);
+        DrawTextEx(fuenteLilita, "EL RIVAL ESTA MEZCLANDO...", (Vector2){margenX, margenY + 300}, 30, 2, YELLOW);
 
         if (tiempo_turno_rival <= 0)
         {
@@ -908,7 +1022,7 @@ void nivel3()
                     cartas_ocultas++;
             }
 
-            int cartas_a_mezclar = (cartas_ocultas + 1) / 2;
+            int cartas_a_mezclar = (cartas_ocultas + 1) / 5;
             int mezcladas = 0;
 
             for (int i = 19; i > 0 && mezcladas < cartas_a_mezclar; i--)
@@ -949,8 +1063,8 @@ void nivel3()
             primera_carta = -1;
             segunda_carta = -1;
 
-            // SI LLEGÓ A 2 FALLOS, CAMBIAR TURNO
-            if (intentos_fallidos >= 2)
+            // SI LLEGÓ A 4 FALLOS, CAMBIAR TURNO
+            if (intentos_fallidos >= 4)
             {
                 turno_jugador = false;
             }
@@ -1000,7 +1114,9 @@ void nivel3()
                                 pares_encontrados++;
                                 vida_rival--;
                                 turno_jugador = true;
+                                tiempoMensaje = 1.0f; // Iniciar temporizador si estaba apagado
                                 // NO INCREMENTAR intentos_fallidos
+                                fraseActual = frases[rand() % 14];
                             }
                             else
                             {
@@ -1024,16 +1140,23 @@ void pantalla_final(int tiempo_restante, int vida_rival, int nivel, bool *resete
     Vector2 mouse = GetMousePosition();
     Rectangle btnReintentar = {760, 660, 400, 60};
     Rectangle btnSalir = {760, 760, 400, 60};
+
+    // FIN POR TIEMPO
     if (tiempo_restante <= 0)
     {
         DrawRectangle(0, 0, 1920, 1080, (Color){0, 0, 0, 200});
-        DrawText("SE ACABO EL TIEMPO!", 650, 500, 50, RED);
-        DrawText("PERDISTE", 800, 570, 50, RED);
-        DrawRectangleRec(btnReintentar, GRAY);
-        DrawText("REINTENTAR", 800, 675, 40, BLACK);
-        DrawRectangleRec(btnSalir, GRAY);
-        DrawText("SALIR", 850, 775, 40, BLACK);
+        DrawText("SE ACABO EL TIEMPO!", 960 - MeasureText("SE ACABO EL TIEMPO!", 50) / 2, 500, 50, RED);
+        DrawText("PERDISTE", 960 - MeasureText("PERDISTE", 50) / 2, 570, 50, RED);
 
+        // Botón REINTENTAR
+        DrawRectangleRec(btnReintentar, GRAY);
+        DrawText("REINTENTAR", btnReintentar.x + btnReintentar.width / 2 - MeasureText("REINTENTAR", 40) / 2, btnReintentar.y + 10, 40, BLACK);
+
+        // Botón SALIR
+        DrawRectangleRec(btnSalir, GRAY);
+        DrawText("SALIR", btnSalir.x + btnSalir.width / 2 - MeasureText("SALIR", 40) / 2, btnSalir.y + 10, 40, BLACK);
+
+        // Clicks
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
             if (CheckCollisionPointRec(mouse, btnReintentar))
@@ -1041,8 +1164,6 @@ void pantalla_final(int tiempo_restante, int vida_rival, int nivel, bool *resete
                 *resetear = true;
                 Pantalla_Actual = nivel_actual;
             }
-
-            // Click en SALIR
             if (CheckCollisionPointRec(mouse, btnSalir))
             {
                 Pantalla_Actual = INICIO;
@@ -1050,58 +1171,64 @@ void pantalla_final(int tiempo_restante, int vida_rival, int nivel, bool *resete
         }
     }
 
+    // FIN POR DERROTA DEL RIVAL
     if (vida_rival <= 0)
     {
+        DrawRectangle(0, 0, 1920, 1080, (Color){0, 0, 0, 200});
+
         if (Pantalla_Actual != NIVEL3)
         {
-            DrawRectangle(0, 0, 1920, 1080, (Color){0, 0, 0, 200});
-            DrawText("DERROTASTE AL RIVAL!", 650, 500, 50, GREEN);
-            DrawText("¡VICTORIA!", 800, 570, 50, GREEN);
-            DrawRectangleRec(btnReintentar, GRAY);
-            DrawText("SIGUIENTE NIVEL", 800, 675, 40, BLACK);
-            DrawRectangleRec(btnSalir, GRAY);
-            DrawText("SALIR", 850, 775, 40, BLACK);
+            DrawText("DERROTASTE AL RIVAL!", 960 - MeasureText("DERROTASTE AL RIVAL!", 50) / 2, 500, 50, GREEN);
+            DrawText("¡VICTORIA!", 960 - MeasureText("¡VICTORIA!", 50) / 2, 570, 50, GREEN);
 
+            // Botón SIGUIENTE NIVEL
+            DrawRectangleRec(btnReintentar, GRAY);
+            DrawText("SIGUIENTE NIVEL", btnReintentar.x + btnReintentar.width / 2 - MeasureText("SIGUIENTE NIVEL", 40) / 2, btnReintentar.y + 10, 40, BLACK);
+
+            // Botón SALIR
+            DrawRectangleRec(btnSalir, GRAY);
+            DrawText("SALIR", btnSalir.x + btnSalir.width / 2 - MeasureText("SALIR", 40) / 2, btnSalir.y + 10, 40, BLACK);
+
+            // Clicks
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
                 if (CheckCollisionPointRec(mouse, btnReintentar))
                 {
                     if (nivel == 0)
                     {
+                        *resetear = true;
                         Pantalla_Actual = NIVEL1;
                     }
-                    else
+                    else if (nivel == 1)
                     {
-                        if (nivel == 1)
-                        {
-                            Pantalla_Actual = NIVEL2;
-                        }
-                        else
-                        {
-                            if (nivel == 2)
-                            {
-                                Pantalla_Actual = NIVEL3;
-                            }
-                        }
+                        *resetear = true;
+                        Pantalla_Actual = NIVEL2;
+                    }
+                    else if (nivel == 2)
+                    {
+                        *resetear = true;
+                        Pantalla_Actual = NIVEL3;
                     }
                 }
-
                 if (CheckCollisionPointRec(mouse, btnSalir))
                 {
+                    *resetear = true;
                     Pantalla_Actual = INICIO;
                 }
             }
         }
         else
         {
-            DrawRectangle(0, 0, 1920, 1080, (Color){0, 0, 0, 200});
-            DrawText("GANASTE EL JUEGO!", 650, 500, 50, GREEN);
-            DrawText("¡SALVASTE EL REINO DE FRACTALIA!", 800, 570, 50, GREEN);
+            // GANASTE EL JUEGO
+            DrawText("GANASTE EL JUEGO!", 960 - MeasureText("GANASTE EL JUEGO!", 50) / 2, 500, 50, GREEN);
+            DrawText("¡SALVASTE EL REINO DE FRACTALIA!", 960 - MeasureText("¡SALVASTE EL REINO DE FRACTALIA!", 50) / 2, 570, 50, GREEN);
+
             DrawRectangleRec(btnSalir, GRAY);
-            DrawText("SALIR", 850, 775, 40, BLACK);
+            DrawText("SALIR", btnSalir.x + btnSalir.width / 2 - MeasureText("SALIR", 40) / 2, btnSalir.y + 10, 40, BLACK);
 
             if (CheckCollisionPointRec(mouse, btnSalir) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
+                *resetear = true;
                 Pantalla_Actual = INICIO;
             }
         }
